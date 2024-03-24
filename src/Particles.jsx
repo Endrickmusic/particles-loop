@@ -7,10 +7,6 @@ import './shader/simulationMaterial.jsx'
 import fragmentShader from "./shader/fragmentShader.js"
 import vertexShader from "./shader/vertexShader.js"
 
-import simFragment from "./shader/simFragment.jsx"
-import simVertex from "./shader/simVertex.jsx"
-
-
 export default function Particles({ size = 128, ...props }) {
   
   const simRef = useRef()
@@ -59,30 +55,6 @@ export default function Particles({ size = 128, ...props }) {
     return particles
   }, [size])
 
-    // Create a Data Texture with our positions data
-
-    const positionsTexture = new DataTexture(
-      generatePositions(size),
-      size,
-      size,
-      RGBAFormat,
-      FloatType
-    )
-    positionsTexture.magFilter = NearestFilter
-    positionsTexture.minFilter = NearestFilter
-    positionsTexture.needsUpdate = true
-
-    console.log(positionsTexture)
-
-    const simulationUniforms = useMemo(() => ({
-
-      // Pass the positions Data Texture as a uniform
-     
-      uPositions: { value: positionsTexture },
-      uTime: { value: 0 }
-   
-    }))
-
     useFrame(( state ) => {
 
       let time = state.clock.getElapsedTime()
@@ -90,12 +62,13 @@ export default function Particles({ size = 128, ...props }) {
       state.gl.setRenderTarget(fbo)
       state.gl.clear()
       state.gl.render(scene, camera)
+
+      renderRef.current.material.uniforms.uPositions.value = fbo.texture
+      
       state.gl.setRenderTarget(null)
 
 
       simRef.current.uniforms.uTime.value = time
-      // renderRef.current.material.uniforms.uPositions.value = fbo.texture
-      // simRef.current.uniforms.uPositions.value = fbo.texture
       renderRef.current.material.uniforms.uTime.value = time
 
     })
@@ -108,8 +81,6 @@ export default function Particles({ size = 128, ...props }) {
         value: null,
       }
     }), [])
-
-    const viewport = useThree(state => state.viewport)
   
     return (
     <>
@@ -118,16 +89,11 @@ export default function Particles({ size = 128, ...props }) {
         <mesh>
 
             <planeGeometry
-              args={[1, 1]}
+              args={[2, 2]}
             />
-            {/* <simulationMaterial 
+            <simulationMaterial 
               args={[size]}
-              uniforms={simulationUniforms}
-              ref={simRef}  */}
-            <shaderMaterial
-              vertexShader={simVertex}
-              fragmentShader={simFragment}
-              uniforms={uniforms}
+              ref={simRef} 
             />
         </mesh>,
         scene
@@ -138,40 +104,14 @@ export default function Particles({ size = 128, ...props }) {
       ref={renderRef}
       scale={[1, 1, 1]}
       >
-          <planeGeometry args={[2, 2]} />
+          <planeGeometry args={[1, 1]} />
           <shaderMaterial
             ref={simRef}
             vertexShader={vertexShader}
             fragmentShader={fragmentShader}
-            uniforms={simulationUniforms}
+            uniforms={uniforms}
             side={DoubleSide}
           />
-          {/* <simulationMaterial
-          args={[size]}
-          side={DoubleSide} */}
-          
         </mesh>
    </>
   )}
-
-  const generatePositions = (size) => {
-  
-    const length = size * size * 4
-    
-    const data = new Float32Array(length)
-  
-    for(let i = 0; i < size; i++){
-      for(let j = 0; j < size; j++){
-        let index = (i + j * size) * 4
-        let theta = Math.random() * Math.PI * 2
-        let r = 0.5 + 0.5 * Math.random() 
-  
-        data[ index + 0 ] = r * Math.cos(theta)
-        data[ index + 1 ] = r * Math.sin(theta)
-        data[ index + 2 ] = 1.
-        data[ index + 3 ] = 1.
-      }
-    }
-  
-    return data;
-  };
