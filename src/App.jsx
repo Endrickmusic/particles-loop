@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 
 import './index.css'
-import Shader from './Shader.jsx'
+import Particles from './Particles.jsx'
 
 function App() {
   
@@ -14,7 +14,7 @@ function App() {
       fov: 40 }}  
     >
       <color attach="background" args={[0x999999]} />
-      <Shader />
+      <Particles />
     </Canvas>
   </>
   )
