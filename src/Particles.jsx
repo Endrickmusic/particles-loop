@@ -1,7 +1,7 @@
 import { OrbitControls, useFBO } from "@react-three/drei"
 import { useFrame, useThree, createPortal } from "@react-three/fiber"
 import { useRef, useMemo, useState } from "react"
-import { DoubleSide, Vector2, NearestFilter, RGBAFormat, FloatType, Scene, OrthographicCamera, DataTexture } from "three"
+import { DoubleSide, Vector2, NearestFilter, RGBAFormat, FloatType, Scene, OrthographicCamera, BufferAttribute, BufferGeometry } from "three"
 
 import './shader/simulationMaterial.jsx'
 import fragmentShader from "./shader/fragmentShader.js"
@@ -18,8 +18,6 @@ export default function Particles({ size = 128, ...props }) {
   const [camera] = useState(() => new OrthographicCamera(-1, 1, 1, -1, 1 / Math.pow(2, 53), 1))
   camera.position.set(0, 0, 0.5)
   camera.lookAt(0, 0, 0)
-  const [positions] = useState(() => new Float32Array([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, 1, 1, 0, -1, 1, 0]))
-  const [uvs] = useState(() => new Float32Array([0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0]))
 
   const fbo = useFBO(size, size, {
     minFilter: NearestFilter,
@@ -35,25 +33,30 @@ export default function Particles({ size = 128, ...props }) {
     type: FloatType
   })
 
+  // Generate our positions and uvs for the particles
 
-  // const fboTexture = new DataTexture(data, size, size, RGBAFormat, FloatType)
-  // fboTexture.magFilter = NearestFilter
-  // fboTexture.minFilter = NearestFilter
-  // fboTexture.needsUpdate = true
+      const count = size * size;
 
-  // console.log(fboTexture)
+      const geometry = new BufferGeometry 
 
-  // Normalize points
-  const particles = useMemo(() => {
-    const length = size * size
-    const particles = new Float32Array(length * 3)
-    for (let i = 0; i < length; i++) {
-      let i3 = i * 3
-      particles[i3 + 0] = (i % size) / size
-      particles[i3 + 1] = i / size / size
+      const positions = new Float32Array(count * 3);
+      const uv = new Float32Array(count * 2);
+
+      for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+          let index = (i + j * size)
+  
+          positions[ index * 3 + 0 ] = Math.random()
+          positions[ index * 3 + 1 ] = Math.random()
+          positions[ index * 3 + 2 ] = 0
+
+          uv[ index * 2 + 0 ] = i / size 
+          uv[ index * 2 + 1 ] = j / size 
+      }
     }
-    return particles
-  }, [size])
+
+    geometry.setAttribute('position', new BufferAttribute(positions, 3))
+    geometry.setAttribute('uv', new BufferAttribute(uv, 2))
 
     useFrame(( state ) => {
 
@@ -67,7 +70,6 @@ export default function Particles({ size = 128, ...props }) {
       
       state.gl.setRenderTarget(null)
 
-
       simRef.current.uniforms.uTime.value = time
       renderRef.current.material.uniforms.uTime.value = time
 
@@ -78,7 +80,7 @@ export default function Particles({ size = 128, ...props }) {
         value: null,
       },
       uTime: {
-        value: null,
+        value: 0,
       }
     }), [])
   
@@ -100,11 +102,12 @@ export default function Particles({ size = 128, ...props }) {
       )}
 
       <OrbitControls />    
-      <mesh 
+      <points
       ref={renderRef}
       scale={[1, 1, 1]}
+      geometry={geometry}
       >
-          <planeGeometry args={[1, 1]} />
+          {/* <planeGeometry args={[1, 1]} /> */}
           <shaderMaterial
             ref={simRef}
             vertexShader={vertexShader}
@@ -112,6 +115,6 @@ export default function Particles({ size = 128, ...props }) {
             uniforms={uniforms}
             side={DoubleSide}
           />
-        </mesh>
+        </points>
    </>
   )}
