@@ -47,7 +47,6 @@ class SimulationMaterial extends ShaderMaterial {
       // Pass the positions Data Texture as a uniform
      
       uPositions: { value: positionsTexture },
-      uPositions2: { value: null },
       uTime: { value: 0 }
    
     }
@@ -72,7 +71,9 @@ class SimulationMaterial extends ShaderMaterial {
         void main() {
 
         vec4 pos = texture2D(uPositions, vUv);
-        // gl_FragColor = vec4( vUv, 0.0, 1.0);
+
+        pos.xy += vec2(0.001);
+
         gl_FragColor = pos;       
         }`
 
