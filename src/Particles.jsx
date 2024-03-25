@@ -1,12 +1,12 @@
 import { OrbitControls, useFBO } from "@react-three/drei"
-import { useFrame, useThree, createPortal } from "@react-three/fiber"
+import { useFrame, createPortal } from "@react-three/fiber"
 import { useRef, useMemo, useState } from "react"
-import { DoubleSide, Vector2, NearestFilter, RGBAFormat, FloatType, Scene, OrthographicCamera, BufferAttribute, BufferGeometry } from "three"
+import { DoubleSide, Vector2, NearestFilter, RGBAFormat, FloatType, Scene, OrthographicCamera, DataTexture, BufferGeometry } from "three"
 
 import './shader/simulationMaterial.js'
 import './shader/renderMaterial.js'
-import fragmentShader from "./shader/fragmentShader.js"
-import vertexShader from "./shader/vertexShader.js"
+
+import { generatePositions } from './generatePositions.jsx'
 
 export default function Particles({ size = 256, ...props }) {
   
@@ -34,14 +34,14 @@ export default function Particles({ size = 256, ...props }) {
     type: FloatType
   })
 
-  // Generate our positions and uvs for the particles
+  // Generate positions and uvs for the particles
 
       const count = size * size;
 
       const geometry = new BufferGeometry 
 
       const positions = new Float32Array(count * 3);
-      const uv = new Float32Array(count * 2);
+      const ref = new Float32Array(count * 2);
 
       for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
@@ -51,13 +51,11 @@ export default function Particles({ size = 256, ...props }) {
           positions[ index * 3 + 1 ] = Math.random()
           positions[ index * 3 + 2 ] = 0
 
-          uv[ index * 2 + 0 ] = i / size 
-          uv[ index * 2 + 1 ] = j / size 
+          ref[ index * 2 + 0 ] = i / size 
+          ref[ index * 2 + 1 ] = j / size 
       }
     }
 
-    geometry.setAttribute('position', new BufferAttribute(positions, 3))
-    geometry.setAttribute('uv', new BufferAttribute(uv, 2))
 
     console.log(simRef.current)
 
@@ -114,16 +112,25 @@ export default function Particles({ size = 256, ...props }) {
       <points
       ref={renderRef}
       scale={[1, 1, 1]}
-      geometry={geometry}
       >
-          {/* <planeGeometry args={[1, 1]} /> */}
-          {/* <shaderMaterial
-            vertexShader={vertexShader}
-            fragmentShader={fragmentShader}
-            uniforms={uniforms}
-            side={DoubleSide}
-          /> */}
-          <renderMaterial />
+          <bufferGeometry>
+              <bufferAttribute
+              attach = 'attributes-position'
+              count = {positions.length / 3}
+              array={positions}
+              itemSize ={3}
+              />
+              <bufferAttribute
+              attach = 'attributes-ref'
+              count = {ref.length / 2}
+              array={ref}
+              itemSize ={2}
+              />
+          </bufferGeometry>
+          <renderMaterial 
+            uPositions = {generatePositions(size)}
+          />
         </points>
    </>
   )}
+
