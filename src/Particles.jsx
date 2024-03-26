@@ -36,12 +36,12 @@ export default function Particles({ size = 256, ...props }) {
 
   // Generate positions and uvs for the particles
 
-      const count = size * size;
 
-      const geometry = new BufferGeometry 
 
-      const positions = new Float32Array(count * 3);
-      const ref = new Float32Array(count * 2);
+  const { positions, ref } = useMemo(() => {
+      const count = size * size
+      const positions = new Float32Array(count * 3)
+      const ref = new Float32Array(count * 2)
 
       for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
@@ -55,7 +55,8 @@ export default function Particles({ size = 256, ...props }) {
           ref[ index * 2 + 1 ] = j / size 
       }
     }
-
+    return { positions, ref }
+},[size])
 
     console.log(simRef.current)
 
