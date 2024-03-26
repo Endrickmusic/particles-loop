@@ -32,5 +32,5 @@ const positionsTexture = new DataTexture(
   positionsTexture.minFilter = NearestFilter
   positionsTexture.needsUpdate = true
 
-  return data;
+  return positionsTexture;
 }

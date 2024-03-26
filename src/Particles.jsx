@@ -61,13 +61,10 @@ export default function Particles({ size = 256, ...props }) {
     console.log(simRef.current)
 
     useFrame(( state ) => {
-
       let time = state.clock.getElapsedTime()
       
       simRef.current.uniforms.uTime.value = time
       renderRef.current.uniforms.uTime.value = time
-
-      
 
       state.gl.setRenderTarget(fbo)
       // state.gl.clear()
@@ -104,7 +101,6 @@ export default function Particles({ size = 256, ...props }) {
               args={[2, 2]}
             />
             <simulationMaterial 
-              args={[size]}
               ref={simRef} 
               uPositions = {generatePositions(size)}
             />
