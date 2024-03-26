@@ -10,7 +10,7 @@ function App() {
 
     <Canvas
     camera={{ 
-      position: [0, 0, 2],
+      position: [0, 0, 5],
       fov: 40 }}  
     >
       <color attach="background" args={[0x999999]} />

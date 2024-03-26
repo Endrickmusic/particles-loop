@@ -34,11 +34,11 @@ export default function Particles({ size = 256, ...props }) {
     type: FloatType
   })
 
-  // Generate positions and uvs for the particles
-
-
 
   const { positions, ref } = useMemo(() => {
+      
+    // Generate positions and uvs for the particles
+
       const count = size * size
       const positions = new Float32Array(count * 3)
       const ref = new Float32Array(count * 2)
@@ -56,7 +56,7 @@ export default function Particles({ size = 256, ...props }) {
       }
     }
     return { positions, ref }
-},[size])
+  },[size])
 
     console.log(simRef.current)
 
@@ -65,15 +65,17 @@ export default function Particles({ size = 256, ...props }) {
       let time = state.clock.getElapsedTime()
       
       simRef.current.uniforms.uTime.value = time
-      renderRef.current.material.uniforms.uTime.value = time
+      renderRef.current.uniforms.uTime.value = time
 
-      // simRef.current.uniforms.uPositions.value = fbo1.texture
-      renderRef.current.material.uniforms.uPositions.value = fbo.texture
+      
 
       state.gl.setRenderTarget(fbo)
       // state.gl.clear()
       state.gl.render(scene, camera)
       state.gl.setRenderTarget(null)
+
+      simRef.current.uniforms.uPositions.value = fbo.texture
+      renderRef.current.uniforms.uPositions.value = fbo1.texture
 
       // Swap render targets
       
@@ -94,9 +96,9 @@ export default function Particles({ size = 256, ...props }) {
   
     return (
     <>
-            {/* Simulation goes into a FBO/Off-buffer */}
-            {createPortal(
-        <mesh>
+        {/* Simulation goes into a FBO/Off-buffer */}
+        {createPortal(
+          <mesh>
 
             <planeGeometry
               args={[2, 2]}
@@ -104,14 +106,14 @@ export default function Particles({ size = 256, ...props }) {
             <simulationMaterial 
               args={[size]}
               ref={simRef} 
+              uPositions = {generatePositions(size)}
             />
-        </mesh>,
-        scene
+          </mesh>,
+          scene
       )}
 
       <OrbitControls />    
       <points
-      ref={renderRef}
       scale={[1, 1, 1]}
       >
           <bufferGeometry>
@@ -129,7 +131,7 @@ export default function Particles({ size = 256, ...props }) {
               />
           </bufferGeometry>
           <renderMaterial 
-            uPositions = {generatePositions(size)}
+          ref={renderRef}
           />
         </points>
    </>
