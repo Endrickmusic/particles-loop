@@ -6,9 +6,9 @@ import { DoubleSide, Vector2, NearestFilter, RGBAFormat, FloatType, Scene, Ortho
 import './shader/simulationMaterial.js'
 import './shader/renderMaterial.js'
 
-import { generatePositions } from './generatePositions.jsx'
+import { generatePositions, infoArray } from './dataTextures.jsx'
 
-export default function Particles({ size = 256, ...props }) {
+export default function Particles({ size = 512, ...props }) {
   
   const simRef = useRef()
   const renderRef = useRef()
@@ -82,15 +82,6 @@ export default function Particles({ size = 256, ...props }) {
 
     })
   
-    const uniforms = useMemo(() => ({
-      uPositions: {
-        value: null,
-      },
-      uTime: {
-        value: 0,
-      }
-    }), [size])
-  
     return (
     <>
         {/* Simulation goes into a FBO/Off-buffer */}
@@ -103,6 +94,7 @@ export default function Particles({ size = 256, ...props }) {
             <simulationMaterial 
               ref={simRef} 
               uPositions = {generatePositions(size)}
+              uInfo = {infoArray(size)}
             />
           </mesh>,
           scene
@@ -128,6 +120,8 @@ export default function Particles({ size = 256, ...props }) {
           </bufferGeometry>
           <renderMaterial 
           ref={renderRef}
+          transparent={true}
+          uInfo={infoArray(size)}
           />
         </points>
    </>

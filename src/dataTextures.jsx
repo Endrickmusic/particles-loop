@@ -1,5 +1,7 @@
 import { DataTexture, RGBAFormat, FloatType, NearestFilter } from "three"
 
+// generates positions on a ring
+
 export const generatePositions = (size) => {
   
     const length = size * size * 4
@@ -19,8 +21,6 @@ export const generatePositions = (size) => {
       }
     }
   
-
-
 const positionsTexture = new DataTexture(
     data,
     size,
@@ -33,4 +33,39 @@ const positionsTexture = new DataTexture(
   positionsTexture.needsUpdate = true
 
   return positionsTexture;
+}
+
+// generates random positions
+
+export const infoArray = (size) => {
+  
+  const length = size * size * 4
+  
+  const data = new Float32Array(length)
+
+  for(let i = 0; i < size; i++){
+    for(let j = 0; j < size; j++){
+      let index = (i + j * size) * 4
+      let theta = Math.random() * Math.PI * 2
+      let r = 0.5 + 0.5 * Math.random() 
+
+      data[ index + 0 ] = 0.5 + Math.random()
+      data[ index + 1 ] = 0.5 + Math.random()
+      data[ index + 2 ] = 1.
+      data[ index + 3 ] = 1.
+    }
+  }
+
+const infoArray = new DataTexture(
+  data,
+  size,
+  size,
+  RGBAFormat,
+  FloatType
+)
+infoArray.magFilter = NearestFilter
+infoArray.minFilter = NearestFilter
+infoArray.needsUpdate = true
+
+return infoArray;
 }

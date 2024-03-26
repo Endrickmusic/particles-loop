@@ -13,7 +13,7 @@ function App() {
       position: [0, 0, 5],
       fov: 40 }}  
     >
-      <color attach="background" args={[0x999999]} />
+      <color attach="background" args={[0x222222]} />
       <Particles />
     </Canvas>
   </>
