@@ -1,5 +1,6 @@
 import { shaderMaterial } from '@react-three/drei'
 import { extend } from '@react-three/fiber'
+import { Vector2 } from 'three'
 
 // Create a custom simulation shader material
 
@@ -9,6 +10,7 @@ const SimulationMaterial = shaderMaterial (
     {
       uPositions: null,
       uInfo: null,
+      uMouse: new Vector2,
       uTime: 0
     },
       
@@ -132,10 +134,10 @@ const SimulationMaterial = shaderMaterial (
           );
       }
 
-
         uniform sampler2D uPositions;
         uniform sampler2D uInfo;
         uniform float uTime;
+        uniform vec2 uMouse;
         
         varying vec2 vUv;
    
@@ -144,28 +146,35 @@ const SimulationMaterial = shaderMaterial (
         vec4 pos = texture2D(uPositions, vUv);
         vec4 info = texture2D(uInfo, vUv);
 
+        // vec2 mouse = vec2(sin( -uTime ), cos( -uTime ));
+
+        vec2 mouse = uMouse;
+
         float radius = length(pos.xy);
 
         float circularForce = 1. - smoothstep(0.5, 1.0, abs(pos.x - radius));
 
-        float angle = atan(pos.y, pos.x) - info.y * 0.1 * mix(0.5, 1.0, circularForce);
+        float angle = atan(pos.y, pos.x) - info.y * 0.3 * mix(0.5, 1.0, circularForce);
         
         float targetRadius = mix(
           info.x,
           1.0, 
-          0.5 + 0.45 * sin(angle * 2.0 + uTime * 0.2)
+          0.5 + 0.45 * sin( angle * 2.0 + uTime * 1.2 )
           );
 
         radius += (targetRadius - radius) * mix(0.2, 0.5, circularForce);
-
-        
 
         vec3 targetPos = vec3(cos(angle), sin(angle), 0.0) * radius;
 
         pos.xy += (targetPos.xy - pos.xy) * 0.1;
 
-        pos.xy += curl(pos.xyz * 2., uTime * 0.1, 0.1).xy * 0.003;
-        // pos.xy += vec2(0.001);
+        pos.xy += curl(pos.xyz * 4., uTime * 0.1, 0.1).xy * 0.006;
+
+        float dist = length(pos.xy - mouse);
+
+        vec2 dir = normalize(pos.xy - mouse);
+
+        pos.xy += dir * 0.1 * smoothstep( 0.25, 0.0, dist);
 
         gl_FragColor = pos;       
         }`

@@ -8,11 +8,11 @@ import './shader/renderMaterial.js'
 
 import { generatePositions, infoArray } from './dataTextures.jsx'
 
-export default function Particles({ size = 512, ...props }) {
+export default function Particles({ size = 512 }) {
   
   const simRef = useRef()
   const renderRef = useRef()
-  
+
   // Set up FBO
 
   const [scene] = useState(() => new Scene())
@@ -58,8 +58,6 @@ export default function Particles({ size = 512, ...props }) {
     return { positions, ref }
   },[size])
 
-    console.log(simRef.current)
-
     useFrame(( state ) => {
       let time = state.clock.getElapsedTime()
       
@@ -73,6 +71,11 @@ export default function Particles({ size = 512, ...props }) {
 
       simRef.current.uniforms.uPositions.value = fbo.texture
       renderRef.current.uniforms.uPositions.value = fbo1.texture
+
+      // Pass mouse coordinates to shader uniform
+
+      // simRef.current.uniforms.uMouse.value = [mouse.x, mouse.y]
+      // console.log(simRef.current.uniforms.uMouse.value)
 
       // Swap render targets
       
@@ -104,7 +107,8 @@ export default function Particles({ size = 512, ...props }) {
       <points
       scale={[1, 1, 1]}
       >
-          <bufferGeometry>
+          <bufferGeometry
+          >
               <bufferAttribute
               attach = 'attributes-position'
               count = {positions.length / 3}

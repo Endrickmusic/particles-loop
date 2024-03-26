@@ -16,12 +16,18 @@ const RenderMaterial = shaderMaterial(
     uniform sampler2D uPositions;
 
     varying vec2 vRef;
+    varying vec4 vColor;
 
     float PI = 3.141592;
 
     void main() {
     
     vec4 pos = texture2D(uPositions, ref);
+
+    float angle = atan( pos.y, pos.x);
+
+    vColor = vec4( 0.5 + 0.45 * sin(angle + uTime) );
+
     vec4 mvPosition = modelViewMatrix * vec4( pos.xyz, 1.0 );
     gl_PointSize = 5. * ( 1. / - mvPosition.z );
     gl_Position = projectionMatrix * mvPosition;
@@ -37,7 +43,7 @@ const RenderMaterial = shaderMaterial(
 
     varying vec2 vRef;
     varying vec3 vPositions;
-    varying vec3 vColor;
+    varying vec4 vColor;
     float PI = 3.1415926;
 
 
@@ -51,7 +57,8 @@ const RenderMaterial = shaderMaterial(
     // vec4 pos = texture2D(uPositions, vRef);
 
     // Output to screen
-    gl_FragColor = vec4(col, 0.6);
+    // gl_FragColor = vec4(col, 0.6);
+    gl_FragColor = vColor + vec4( col, 1.0 );
     // gl_FragColor = vec4(vRef, 0.0, 1.0);
     // gl_FragColor = pos;
 	
