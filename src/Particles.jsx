@@ -9,7 +9,7 @@ import './shader/renderMaterial.js'
 
 import { generatePositions, infoArray } from './dataTextures.jsx'
 
-export default function Particles({ size = 512 }) {
+export default function Particles({ size = 8 }) {
   
   const simRef = useRef()
   const renderRef = useRef()

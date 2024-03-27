@@ -29,7 +29,7 @@ const RenderMaterial = shaderMaterial(
     vColor = vec4( 0.5 + 0.45 * sin(angle + uTime) );
 
     vec4 mvPosition = modelViewMatrix * vec4( pos.xyz, 1.0 );
-    gl_PointSize = 5. * ( 1. / - mvPosition.z );
+    gl_PointSize = 100. * ( 1. / - mvPosition.z );
     gl_Position = projectionMatrix * mvPosition;
     vRef = ref;
 }
