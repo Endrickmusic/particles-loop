@@ -1,3 +1,4 @@
+import { useThree } from "@react-three/fiber"
 import { OrbitControls, useFBO } from "@react-three/drei"
 import { useFrame, createPortal } from "@react-three/fiber"
 import { useRef, useMemo, useState } from "react"
@@ -12,6 +13,17 @@ export default function Particles({ size = 512 }) {
   
   const simRef = useRef()
   const renderRef = useRef()
+  const mouseRef = useRef()
+
+  const viewport = useThree(state => state.viewport)
+
+  const [mouse, setMouse] = useState({ x: 0, y: 0 }); // State to hold mouse coordinates
+
+  const handlePointerMove = (event) => {
+    // Update mouse state with new coordinates
+    // console.log(event.clientX)
+    setMouse({ x: event.clientX, y: event.clientY })
+  }
 
   // Set up FBO
 
@@ -61,6 +73,8 @@ export default function Particles({ size = 512 }) {
     useFrame(( state ) => {
       let time = state.clock.getElapsedTime()
       
+      mouseRef.current.position.set((state.pointer.x * viewport.width) / 2, (state.pointer.y * viewport.height) / 2, 1)
+
       simRef.current.uniforms.uTime.value = time
       renderRef.current.uniforms.uTime.value = time
 
@@ -103,10 +117,30 @@ export default function Particles({ size = 512 }) {
           scene
       )}
 
-      <OrbitControls />    
+      <OrbitControls /> 
+      <mesh
+        ref={mouseRef}
+        scale={[0.1, 0.1, 0.1]}
+        >
+          <sphereGeometry />
+          <meshBasicMaterial />
+        </mesh>
+
+      <mesh
+        visible={false}
+        scale={[viewport.width, viewport.height, 1]}
+        onPointerMove={(e)=>console.log('PointerMove')}
+        >
+          <planeGeometry />
+          <meshBasicMaterial />
+      </mesh>
+
       <points
       scale={[1, 1, 1]}
       >
+
+
+
           <bufferGeometry
           >
               <bufferAttribute
