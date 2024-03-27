@@ -13,9 +13,12 @@ function App() {
       camera={{ 
         position: [0, 0, 5],
         fov: 40 }}  
+      shadows
     >
       <color attach="background" args={[0x222222]} />
-      <directionalLight />
+      <directionalLight 
+      position={[5, 2, 2]}
+      />  
       <Particles 
       />
     </Canvas>

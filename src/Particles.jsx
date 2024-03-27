@@ -1,5 +1,5 @@
 import { useThree } from "@react-three/fiber"
-import { OrbitControls, useFBO } from "@react-three/drei"
+import { OrbitControls, useFBO, useEnvironment } from "@react-three/drei"
 import { useFrame, createPortal } from "@react-three/fiber"
 import { useRef, useMemo, useState, useEffect } from "react"
 import { DoubleSide, Vector2, NearestFilter, RGBAFormat, FloatType, Scene, OrthographicCamera, DataTexture, BufferGeometry, MeshPhysicalMaterial, InstancedBufferAttribute } from "three"
@@ -20,6 +20,8 @@ export default function Particles({ size = 8 }) {
   const instanceRef = useRef()
 
   const viewport = useThree(state => state.viewport)
+
+  const envMap = useEnvironment({files:'./environments/envmap.hdr'})
 
 
   // Set up FBO
@@ -144,7 +146,11 @@ export default function Particles({ size = 8 }) {
         scale={[0.1, 0.1, 0.1]}
         >
           <sphereGeometry />
-          <meshBasicMaterial />
+          <meshStandardMaterial 
+          envMap={envMap}
+          roughness={0.1}
+          metalness={1.0}
+          />
         </mesh>
 
       <points
@@ -177,8 +183,8 @@ export default function Particles({ size = 8 }) {
         ref={instanceRef}
         args={[null, null, size * size]}
       >
-        <boxGeometry 
-        args={[0.1, 0.1, 0.1]}
+        <sphereGeometry 
+        args={[0.1, 10, 10]}
         />
         <CustomShaderMaterial
           baseMaterial={MeshPhysicalMaterial}
@@ -187,6 +193,9 @@ export default function Particles({ size = 8 }) {
           fragmentShader={patchShaders(shader.fragment)}
           uniforms={uniforms}
           transparent
+          envMap={envMap}
+          roughness={0.1}
+          metalness={1.0}
         />
       </instancedMesh>
    </>
@@ -199,6 +208,8 @@ export default function Particles({ size = 8 }) {
 
       uniform float uTime;
       uniform sampler2D uPositions;
+
+      varying vec4 vNormals;
   
       vec3 displace(vec3 point) {
         vec3 pos = texture2D(uPositions, aRef).rgb;
@@ -228,14 +239,18 @@ export default function Particles({ size = 8 }) {
       }
   
       void main() {
+        
         vec3 p = displace(position);
         csm_PositionRaw = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(p, 1.);
         csm_Normal = recalcNormals(p);
+        vNormals.xyz = csm_Normal;
       }
       `,
     fragment: /* glsl */ `
+      varying vec4 vNormals;
+    
       void main() {
-        csm_DiffuseColor = vec4(1.);
+        csm_DiffuseColor = vec4(vNormals.xyz, 1.0);
       }
       `,
   }
