@@ -1,8 +1,11 @@
 import { useThree } from "@react-three/fiber"
 import { OrbitControls, useFBO } from "@react-three/drei"
 import { useFrame, createPortal } from "@react-three/fiber"
-import { useRef, useMemo, useState } from "react"
-import { DoubleSide, Vector2, NearestFilter, RGBAFormat, FloatType, Scene, OrthographicCamera, DataTexture, BufferGeometry } from "three"
+import { useRef, useMemo, useState, useEffect } from "react"
+import { DoubleSide, Vector2, NearestFilter, RGBAFormat, FloatType, Scene, OrthographicCamera, DataTexture, BufferGeometry, MeshPhysicalMaterial, InstancedBufferAttribute } from "three"
+
+import CustomShaderMaterial from 'three-custom-shader-material'
+import { patchShaders } from 'gl-noise/build/glNoise.m'
 
 import './shader/simulationMaterial.js'
 import './shader/renderMaterial.js'
@@ -14,6 +17,7 @@ export default function Particles({ size = 8 }) {
   const simRef = useRef()
   const renderRef = useRef()
   const mouseRef = useRef()
+  const instanceRef = useRef()
 
   const viewport = useThree(state => state.viewport)
 
@@ -39,6 +43,14 @@ export default function Particles({ size = 8 }) {
     type: FloatType
   })
 
+  const uniforms = useMemo(
+    () => ({
+      uPositions: {
+        value: null,
+      },
+    }),
+    []
+  )
 
   const { positions, ref } = useMemo(() => {
       
@@ -63,6 +75,23 @@ export default function Particles({ size = 8 }) {
     return { positions, ref }
   },[size])
 
+  useEffect(()=> {
+
+    // creating refs for the instances
+
+    const ref = new Float32Array(size * size *2)
+
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        let index = (i + j * size)
+        ref[ index * 2 + 0 ] = i / (size - 1)
+        ref[ index * 2 + 1 ] = j / (size - 1)  
+    }
+  }
+  instanceRef.current.geometry.setAttribute('aRef', new InstancedBufferAttribute(ref, 2))
+  },[])
+
+
     useFrame(( state ) => {
       let time = state.clock.getElapsedTime()
       
@@ -80,11 +109,8 @@ export default function Particles({ size = 8 }) {
 
       simRef.current.uniforms.uPositions.value = fbo.texture
       renderRef.current.uniforms.uPositions.value = fbo1.texture
-
-      // Pass mouse coordinates to shader uniform
-
-      // simRef.current.uniforms.uMouse.value = [mouse.x, mouse.y]
-      // console.log(simRef.current.uniforms.uMouse.value)
+      // console.log(instanceRef.current)
+      instanceRef.current.material.uniforms.uPositions.value = fbo.texture
 
       // Swap render targets
       
@@ -146,6 +172,70 @@ export default function Particles({ size = 8 }) {
           uInfo={infoArray(size)}
           />
         </points>
+
+      <instancedMesh
+        ref={instanceRef}
+        args={[null, null, size * size]}
+      >
+        <boxGeometry 
+        args={[0.1, 0.1, 0.1]}
+        />
+        <CustomShaderMaterial
+          baseMaterial={MeshPhysicalMaterial}
+          size={0.01}
+          vertexShader={patchShaders(shader.vertex)}
+          fragmentShader={patchShaders(shader.fragment)}
+          uniforms={uniforms}
+          transparent
+        />
+      </instancedMesh>
    </>
   )}
 
+  const shader = {
+    vertex: /* glsl */ `
+      
+      attribute vec2 aRef;
+
+      uniform float uTime;
+      uniform sampler2D uPositions;
+  
+      vec3 displace(vec3 point) {
+        vec3 pos = texture2D(uPositions, aRef).rgb;
+        vec3 instancePosition = (instanceMatrix * vec4(point, 1.)).xyz;
+        return instancePosition + pos;
+      }  
+  
+      vec3 orthogonal(vec3 v) {
+        return normalize(abs(v.x) > abs(v.z) ? vec3(-v.y, v.x, 0.0)
+        : vec3(0.0, -v.z, v.y));
+      }
+  
+      vec3 recalcNormals(vec3 newPos) {
+        float offset = 0.001;
+        vec3 tangent = orthogonal(normal);
+        vec3 bitangent = normalize(cross(normal, tangent));
+        vec3 neighbour1 = position + tangent * offset;
+        vec3 neighbour2 = position + bitangent * offset;
+  
+        vec3 displacedNeighbour1 = displace(neighbour1);
+        vec3 displacedNeighbour2 = displace(neighbour2);
+  
+        vec3 displacedTangent = displacedNeighbour1 - newPos;
+        vec3 displacedBitangent = displacedNeighbour2 - newPos;
+  
+        return normalize(cross(displacedTangent, displacedBitangent));
+      }
+  
+      void main() {
+        vec3 p = displace(position);
+        csm_PositionRaw = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(p, 1.);
+        csm_Normal = recalcNormals(p);
+      }
+      `,
+    fragment: /* glsl */ `
+      void main() {
+        csm_DiffuseColor = vec4(1.);
+      }
+      `,
+  }

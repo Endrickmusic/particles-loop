@@ -15,6 +15,7 @@ function App() {
         fov: 40 }}  
     >
       <color attach="background" args={[0x222222]} />
+      <directionalLight />
       <Particles 
       />
     </Canvas>
