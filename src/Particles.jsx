@@ -121,7 +121,7 @@ export default function Particles({ size = 8 }) {
       fbo1 = temp
 
     })
-  
+
     return (
     <>
         {/* Simulation goes into a FBO/Off-buffer */}
@@ -178,7 +178,6 @@ export default function Particles({ size = 8 }) {
           uInfo={infoArray(size)}
           />
         </points>
-
       <instancedMesh
         ref={instanceRef}
         args={[null, null, size * size]}
@@ -198,6 +197,7 @@ export default function Particles({ size = 8 }) {
           metalness={1.0}
         />
       </instancedMesh>
+
    </>
   )}
 
