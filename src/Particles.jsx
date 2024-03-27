@@ -12,7 +12,7 @@ import './shader/renderMaterial.js'
 
 import { generatePositions, infoArray } from './dataTextures.jsx'
 
-export default function Particles({ size = 8 }) {
+export default function Particles({ size = 4 }) {
   
   const simRef = useRef()
   const renderRef = useRef()
@@ -182,8 +182,8 @@ export default function Particles({ size = 8 }) {
         ref={instanceRef}
         args={[null, null, size * size]}
       >
-        <sphereGeometry 
-        args={[0.1, 10, 10]}
+        <boxGeometry 
+        args={[0.1, 0.25, 0.1]}
         />
         <CustomShaderMaterial
           baseMaterial={MeshPhysicalMaterial}
