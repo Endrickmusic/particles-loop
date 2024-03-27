@@ -17,13 +17,6 @@ export default function Particles({ size = 512 }) {
 
   const viewport = useThree(state => state.viewport)
 
-  const [mouse, setMouse] = useState({ x: 0, y: 0 }); // State to hold mouse coordinates
-
-  const handlePointerMove = (event) => {
-    // Update mouse state with new coordinates
-    // console.log(event.clientX)
-    setMouse({ x: event.clientX, y: event.clientY })
-  }
 
   // Set up FBO
 
@@ -74,6 +67,8 @@ export default function Particles({ size = 512 }) {
       let time = state.clock.getElapsedTime()
       
       mouseRef.current.position.set((state.pointer.x * viewport.width) / 2, (state.pointer.y * viewport.height) / 2, 1)
+
+      simRef.current.uniforms.uMouse.value = [(state.pointer.x * viewport.width) / 2, (state.pointer.y * viewport.height) / 2]
 
       simRef.current.uniforms.uTime.value = time
       renderRef.current.uniforms.uTime.value = time
@@ -126,20 +121,9 @@ export default function Particles({ size = 512 }) {
           <meshBasicMaterial />
         </mesh>
 
-      <mesh
-        visible={false}
-        scale={[viewport.width, viewport.height, 1]}
-        onPointerMove={(e)=>console.log('PointerMove')}
-        >
-          <planeGeometry />
-          <meshBasicMaterial />
-      </mesh>
-
       <points
       scale={[1, 1, 1]}
       >
-
-
 
           <bufferGeometry
           >
