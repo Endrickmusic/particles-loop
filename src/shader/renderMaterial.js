@@ -1,15 +1,15 @@
-import { shaderMaterial } from '@react-three/drei'
-import { extend } from '@react-three/fiber'
+import { shaderMaterial } from "@react-three/drei"
+import { extend } from "@react-three/fiber"
 
 const RenderMaterial = shaderMaterial(
-    // uniforms
-    {
-        uTime: 0,
-        uPositions: null,
-        uInfo: null
-    },
-    // vertex shader
-    `
+  // uniforms
+  {
+    uTime: 0,
+    uPositions: null,
+    uInfo: null,
+  },
+  // vertex shader
+  `
     attribute vec2 ref;
 
     uniform float uTime;
@@ -29,13 +29,13 @@ const RenderMaterial = shaderMaterial(
     vColor = vec4( 0.5 + 0.45 * sin(angle + uTime) );
 
     vec4 mvPosition = modelViewMatrix * vec4( pos.xyz, 1.0 );
-    gl_PointSize = 5. * ( 1. / - mvPosition.z );
+    gl_PointSize = 45. * ( 1. / - mvPosition.z );
     gl_Position = projectionMatrix * mvPosition;
     vRef = ref;
 }
     `,
-    // fragment shader
-    `
+  // fragment shader
+  `
     uniform float uTime;
     uniform sampler2D uPositions;
     uniform sampler2D uInfo;
